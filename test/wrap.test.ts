@@ -1,3 +1,4 @@
+// eslint-env jest
 /*
  * Copyright (c) 2011 Yahoo! Inc. All rights reserved.
  */
@@ -12,7 +13,7 @@ const assertableCallback: demoCallback = (num, str, str2) => {
 };
 
 const slowAssertableCallback: demoCallback = (...args) => {
-  const foo = [];
+  const foo: number[] = [];
   for (let i = 0; i < 100000; i += 1) {
     foo[i] = i;
   }
