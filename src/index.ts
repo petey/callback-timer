@@ -1,8 +1,7 @@
-/* eslint-disable max-len */
 import timeThat from 'timethat';
 
 interface logger {
-  warn: (...args: any) => void;
+  warn: (...args: any[]) => void;
 }
 
 interface wrapCallbackConfig {
@@ -14,7 +13,7 @@ interface wrapCallbackConfig {
   methodName?: string;
 }
 
-type callbackFn = (...args: any) => any;
+type callbackFn = (...args: any[]) => any;
 
 /**
  * @module wrapCallback
@@ -39,9 +38,9 @@ const wrapCallback = (
   config: wrapCallbackConfig | callbackFn,
   callback?: callbackFn | undefined
 ) => {
-  let cb: callbackFn =
+  const cb: callbackFn =
     typeof callback === 'function' ? callback : (config as callbackFn);
-  let conf: wrapCallbackConfig = typeof config !== 'function' ? config : {};
+  const conf: wrapCallbackConfig = typeof config !== 'function' ? config : {};
 
   if (!cb || typeof cb !== 'function') {
     throw new Error('Callback not defined');
@@ -58,7 +57,7 @@ const wrapCallback = (
   const useRelativeTime =
     conf.useRelativeTime === undefined ? true : !!conf.useRelativeTime;
 
-  return async (...args: any) => {
+  return async (...args: any[]) => {
     const result = cb.apply(context, args);
     if (result instanceof Promise) {
       await result;
