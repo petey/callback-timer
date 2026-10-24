@@ -1,5 +1,13 @@
-*.log
-.DS_Store
 node_modules
 dist
-yarn-error.log
+*.log
+.DS_Store
+!.vscode/
+!.vscode/settings.json
+!.vscode/extensions.json
+.yarn/install-state.gz
+
+# dotenv environment variable files
+.env
+.env.*
+!.env.example

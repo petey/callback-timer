@@ -1,5 +1,3 @@
-import timeThat from 'timethat';
-
 interface logger {
   warn: (...args: any[]) => void;
 }
@@ -14,6 +12,22 @@ interface wrapCallbackConfig {
 }
 
 type callbackFn = (...args: any[]) => any;
+
+const formatDuration = (milliseconds: number) => {
+  const seconds = milliseconds / 1000;
+
+  if (seconds < 1) {
+    return `${Math.round(milliseconds)} milliseconds`;
+  }
+
+  if (seconds < 60) {
+    return `${seconds.toFixed(2)} seconds`;
+  }
+
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = Math.floor(seconds % 60);
+  return remainingSeconds ? `${minutes} minutes ${remainingSeconds} seconds` : `${minutes} minutes`;
+};
 
 /**
  * @module wrapCallback
@@ -34,63 +48,53 @@ type callbackFn = (...args: any[]) => any;
  * @param {Function}  callback        Function to wrap
  * @returns {Function}   Wrapped Callback
  */
-const wrapCallback = (
-  config: wrapCallbackConfig | callbackFn,
-  callback?: callbackFn | undefined
-) => {
-  const cb: callbackFn =
-    typeof callback === 'function' ? callback : (config as callbackFn);
-  const conf: wrapCallbackConfig = typeof config !== 'function' ? config : {};
+const wrapCallback = (config: wrapCallbackConfig | callbackFn, callback?: callbackFn) => {
+  let cb: callbackFn = typeof callback === "function" ? callback : (config as callbackFn);
+  let conf: wrapCallbackConfig = typeof config !== "function" ? config : {};
 
-  if (!cb || typeof cb !== 'function') {
-    throw new Error('Callback not defined');
+  if (!cb || typeof cb !== "function") {
+    throw new Error("Callback not defined");
   }
 
-  const start = new Date();
-  const {
-    context = null,
-    logger = console,
-    maxTimeWarning = 0,
-    methodName,
-  } = conf;
-  const tag = Array.isArray(conf.tag) ? conf.tag.join(' ') : conf.tag;
-  const useRelativeTime =
-    conf.useRelativeTime === undefined ? true : !!conf.useRelativeTime;
+  const { context = null, logger = console, maxTimeWarning = 0, methodName } = conf;
+  const tag = Array.isArray(conf.tag) ? conf.tag.join(" ") : conf.tag;
+  const useRelativeTime = conf.useRelativeTime === undefined ? true : !!conf.useRelativeTime;
 
-  return async (...args: any[]) => {
+  return async (...args: any) => {
+    const start = performance.now();
     const result = cb.apply(context, args);
     if (result instanceof Promise) {
       await result;
     }
 
-    const now = new Date();
-    const isTooSlow = now.getTime() - start.getTime() > maxTimeWarning;
+    const elapsed = performance.now() - start;
+    const isTooSlow = elapsed > maxTimeWarning;
     const message: string[] = [];
 
     if (tag) {
       message.push(`[${tag}] `);
     }
 
-    message.push('Call ');
+    message.push("Call ");
 
     if (methodName) {
       message.push(`(${methodName}) `);
     }
 
-    message.push('took ');
+    message.push("took ");
 
     if (maxTimeWarning) {
       message.push(`longer than ${maxTimeWarning / 1000} seconds - `);
     }
 
     if (useRelativeTime) {
-      message.push(timeThat.calc(start, now));
+      message.push(formatDuration(elapsed));
     } else {
-      message.push(`${(now.getTime() - start.getTime()) / 1000} seconds`);
+      message.push(`${elapsed / 1000} seconds`);
     }
 
     if (!maxTimeWarning || (maxTimeWarning && isTooSlow)) {
-      logger.warn(message.join(''));
+      logger.warn(message.join(""));
     }
   };
 };
